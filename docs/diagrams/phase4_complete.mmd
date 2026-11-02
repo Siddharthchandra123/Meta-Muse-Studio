@@ -1,0 +1,20 @@
+flowchart TB
+  Browser[Next.js text / image / document / screen + voice UI]
+  Frame[Explicit screen share + one-frame snapshot]
+  Audio[Existing Phase 3 voice + Kokoro]
+  Proxy[Next.js same-origin multimodal proxy]
+  API[FastAPI multipart validations]
+  PDF[PDF inline input_file]
+  DOC[DOCX/TXT/CSV local text extraction]
+  IMG[Image input_image base64]
+  MUSE[Muse Spark Responses API]
+  STATE[Prior response id / session continuity]
+  Browser --> Proxy --> API
+  Browser --> Frame --> Proxy
+  Browser --> Audio
+  API --> PDF --> MUSE
+  API --> DOC --> MUSE
+  API --> IMG --> MUSE
+  MUSE <--> STATE
+  MUSE -->|SSE answer| Browser
+  Browser -->|Kokoro response| Audio

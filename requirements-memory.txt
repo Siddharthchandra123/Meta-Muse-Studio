@@ -1,0 +1,5 @@
+# Phase 6: local PostgreSQL + pgvector + durable LangGraph checkpoints.
+-r requirements-agent.txt
+langgraph>=1.0,<2
+langgraph-checkpoint-postgres>=3.0,<4
+psycopg[binary]>=3.2,<4

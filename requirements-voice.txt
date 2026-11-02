@@ -1,0 +1,9 @@
+-r requirements.txt
+# Optional native ONNX runtime; install only for local speech output.
+kokoro-onnx>=0.6,<1
+
+# Realtime Meta Voice Transcribe WebSocket bridge (pure Python)
+websockets>=14,<17
+
+# Pure-Python PDF structure validation (no native OCR/DLL dependency)
+pypdf>=5.0,<7

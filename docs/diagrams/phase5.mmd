@@ -1,0 +1,20 @@
+flowchart LR
+  USER[User: Ask for research] --> DASH[Next.js Research Agent UI]
+  DASH --> ROUTE[FastAPI agent SSE route]
+  ROUTE --> MUSE[Muse Spark Responses function tools]
+  MUSE --> GATE[Bounded tool dispatcher]
+  GATE --> SEARCH[SearXNG local search]
+  GATE --> PAGE[Read approved HTTPS page]
+  GATE --> BROWSER[Read-only Playwright]
+  GATE --> CALC[Bounded arithmetic]
+  GATE --> DRAFT[Stage note proposal]
+  DRAFT --> APPROVE{User explicitly approves?}
+  APPROVE -- Yes --> NOTE[Local Markdown note]
+  APPROVE -- No --> CANCEL[Discard]
+  SEARCH --> MUSE
+  PAGE --> MUSE
+  BROWSER --> MUSE
+  CALC --> MUSE
+  DRAFT --> MUSE
+  MUSE --> RESULT[Final response + sources + audit steps]
+  RESULT --> DASH

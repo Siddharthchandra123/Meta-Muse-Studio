@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MUSE Nova — Local Demo</title>
+  <style>
+    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;color:#e8edf8;background:#090f1f}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 80% -15%,#1b3154,transparent 55%),#090f1f}
+    .shell{max-width:900px;margin:auto;min-height:100vh;padding:24px;display:flex;flex-direction:column;gap:18px}
+    header{display:flex;align-items:center;gap:13px;border-bottom:1px solid #273449;padding-bottom:18px}
+    .mark{background:linear-gradient(135deg,#51e2be,#6c86ff);color:#0a1730;font-weight:900;border-radius:14px;padding:13px}
+    .sub{color:#9ba9c4;font-size:13px;margin-top:3px}.right{margin-left:auto;color:#aab9d2;font-size:12px}
+    h1{font-size:21px;margin:0}.status{font-size:12px;color:#77e3bc}
+    .chat{flex:1;min-height:50vh;display:flex;flex-direction:column;gap:16px;padding:4px 0 20px;overflow-wrap:anywhere}
+    .welcome{margin:auto;max-width:570px;text-align:center;color:#aebbd3}.welcome strong{font-size:27px;color:white}
+    .message{white-space:pre-wrap;line-height:1.58;padding:14px 17px;border-radius:18px;max-width:83%;font-size:15px}
+    .user{align-self:flex-end;background:#25375b;color:#fff;border-bottom-right-radius:6px}
+    .assistant{align-self:flex-start;background:#142137;border:1px solid #2c3b53;border-bottom-left-radius:6px}
+    .card{background:#101b2e;border:1px solid #293851;border-radius:20px;padding:14px}
+    form{display:flex;align-items:flex-end;gap:10px}textarea{flex:1;color:white;border:0;background:transparent;resize:vertical;min-height:44px;max-height:170px;font:inherit;outline:0;padding:10px}
+    button{background:#5bd9b4;color:#092019;border:0;border-radius:12px;padding:12px 18px;font:inherit;font-weight:750;cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}
+    .foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:#a4b2ca;font-size:12px;padding-top:10px}
+    .foot button{background:transparent;border:1px solid #3d4b63;color:#b9c7da;padding:6px 9px;font-size:12px}
+    .error{color:#f6a1ab}.small{font-size:12px;color:#9caecb}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="mark">M</div>
+      <div><h1>MUSE Nova</h1><div class="sub">Real-time agent • Phase 1.1 local demo</div></div>
+      <div class="right"><div class="status" id="status">● Ready</div><div>Text streaming</div></div>
+    </header>
+    <section class="chat" id="chat" aria-live="polite">
+      <div class="welcome" id="welcome"><strong>What can I help you explore?</strong><p>Try a follow-up question to test conversation context. Browser tools, voice, and real actions are not enabled yet.</p></div>
+    </section>
+    <div class="card">
+      <form id="form">
+        <textarea id="message" maxlength="4000" placeholder="Ask MUSE Nova a question..." aria-label="Message" rows="2" required></textarea>
+        <button id="send" type="submit">Send</button>
+      </form>
+      <div class="foot">
+        <span id="usage">Usage estimate: $0.000000</span>
+        <button id="new-chat" type="button">New chat</button>
+        <span>Local-only demo • Do not enter sensitive information</span>
+      </div>
+      <div id="notice" class="small" role="status"></div>
+    </div>
+  </main>
+  <script>
+    const chat=document.querySelector('#chat'),form=document.querySelector('#form');
+    const input=document.querySelector('#message'),button=document.querySelector('#send');
+    const status=document.querySelector('#status'),notice=document.querySelector('#notice');
+    let conversationId=null,busy=false;
+    function bubble(kind,text){const el=document.createElement('div');el.className='message '+kind;el.textContent=text;chat.appendChild(el);el.scrollIntoView({behavior:'smooth',block:'end'});return el;}
+    function setBusy(value){busy=value;button.disabled=value;input.disabled=value;status.textContent=value?'● Generating…':'● Ready';}
+    function eventFromBlock(block){
+      const lines=block.replace(/\r/g,'').split('\n');
+      const type=lines.find(x=>x.startsWith('event: '))?.slice(7);
+      const data=lines.filter(x=>x.startsWith('data: ')).map(x=>x.slice(6)).join('\n');
+      if(!type||!data)return null;
+      try{return {type,data:JSON.parse(data)};}catch{return null;}
+    }
+    function handleEvent(ev,output){
+      if(!ev)return;
+      if(ev.type==='session')conversationId=ev.data.conversation_id;
+      if(ev.type==='delta')output.textContent+=ev.data.text;
+      if(ev.type==='error')throw new Error(ev.data.message||'Stream error');
+      if(ev.type==='done'){notice.textContent='Model: '+ev.data.model+' · Estimated request cost: $'+(ev.data.usage.estimated_cost_usd??'unknown');return true;}
+      return false;
+    }
+    form.addEventListener('submit',async e=>{
+      e.preventDefault();if(busy)return;
+      const message=input.value.trim();if(!message)return;
+      document.querySelector('#welcome')?.remove();bubble('user',message);input.value='';notice.textContent='';notice.classList.remove('error');setBusy(true);
+      const output=bubble('assistant','');let done=false;
+      try{
+        const response=await fetch('/v1/chat/stream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message,conversation_id:conversationId})});
+        if(!response.ok){const body=await response.json().catch(()=>({}));throw new Error(body.detail||'Request rejected');}
+        const reader=response.body.getReader(),decoder=new TextDecoder();let pending='';
+        while(true){const {value,done:end}=await reader.read();if(end)break;pending+=decoder.decode(value,{stream:true});
+          const blocks=pending.split('\n\n');pending=blocks.pop();
+          for(const block of blocks){if(handleEvent(eventFromBlock(block),output))done=true;}
+        }
+        if(!done)throw new Error('Stream ended before completion');
+        const usageResponse=await fetch('/v1/usage');if(usageResponse.ok){const total=await usageResponse.json();document.querySelector('#usage').textContent='Estimated process total: $'+total.estimated_total_usd.toFixed(6);}
+      }catch(error){if(!output.textContent)output.remove();notice.textContent=error.message;notice.classList.add('error');}
+      finally{setBusy(false);input.focus();}
+    });
+    document.querySelector('#new-chat').addEventListener('click',()=>{if(busy)return;conversationId=null;chat.replaceChildren();bubble('assistant','New chat started. The previous conversation is no longer used by this page, but server-side provider history may still exist.');notice.textContent='';notice.classList.remove('error');});
+    input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();form.requestSubmit();}});
+  </script>
+</body>
+</html>

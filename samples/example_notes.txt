@@ -1,0 +1,8 @@
+MUSE NOVA — SYNTHETIC RESEARCH NOTES
+These figures are invented for local testing and are not real-world claims.
+
+2026 Prototype targets:
+Voice start: less than 2 seconds on accelerated hardware (target, not verified).
+Vision: image + question works in the same conversation.
+Document QA: answer a question using a supplied PDF, and mention a supporting page when possible.
+Screen sharing: the browser needs explicit user permission, and frames are only submitted on Send or after the user opts in to live-voice capture.

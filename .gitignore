@@ -1,0 +1,25 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+.env
+.env.*
+!.env.example
+.DS_Store
+.idea/
+.vscode/settings.json
+*.log
+usage*.jsonl
+
+# Next.js dashboard
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+!.env.local.example
+
+# Local Kokoro model weights and voice files (large binaries)
+models/kokoro/
+
+# Phase 5 user-approved notes and local data
+/data/

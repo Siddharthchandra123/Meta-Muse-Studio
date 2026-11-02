@@ -1,0 +1,3 @@
+# Docker-free knowledge hub. Preserves the existing Phase 6/agent requirements.
+-r requirements-memory.txt
+# SQLite FTS5 is included with standard Windows Python. No vector ML dependency required for keyword search.

@@ -1,0 +1,26 @@
+flowchart TB
+  USER["User Uploads PDF / DOCX / TXT / CSV"] --> HUB["MUSE Nova Knowledge Hub"]
+  HUB --> API["FastAPI RAGaaS"]
+  API --> VALIDATE["Validate, Parse & Chunk"]
+  VALIDATE --> STORE[("SQLite FTS5 Knowledge Store")]
+  VALIDATE -. "Optional embeddings" .-> VECTORS["Local Sentence Transformers"]
+  VECTORS -.-> STORE
+  QUERY["Question"] --> ROUTER{"Retrieval Mode"}
+  ROUTER --> KW["Keyword FTS5"]
+  ROUTER --> SEM["Neural Semantic"]
+  ROUTER --> HY["Hybrid / RRF"]
+  STORE --> KW
+  STORE --> SEM
+  STORE --> HY
+  KW --> SOURCES["Relevant Chunks & Citations"]
+  SEM --> SOURCES
+  HY --> SOURCES
+  SOURCES --> LOCAL["Local Search Results"]
+  SOURCES --> CONSENT{"User consents to external API?"}
+  CONSENT -->|Yes| MUSE["Muse Spark: Grounded Answer"]
+  CONSENT -->|No| LOCAL
+  MUSE --> CITES["Answer + Original Sources"]
+  classDef ready fill:#d7f5e5,stroke:#23895f,color:#164a35
+  classDef opt fill:#fff1cf,stroke:#c98b25,color:#573a0d
+  class USER,HUB,API,VALIDATE,STORE,QUERY,ROUTER,KW,SOURCES,LOCAL,CONSENT ready
+  class SEM,HY,VECTORS,MUSE,CITES opt

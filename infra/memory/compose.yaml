@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: muse-nova-memory
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: muse_nova
+      POSTGRES_USER: muse_nova
+      POSTGRES_PASSWORD: muse_local_dev
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - muse_nova_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U muse_nova -d muse_nova"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+volumes:
+  muse_nova_pgdata:

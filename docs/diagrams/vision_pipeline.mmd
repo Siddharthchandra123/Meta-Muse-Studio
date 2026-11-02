@@ -1,0 +1,13 @@
+flowchart TB
+    U[User: image and question] --> UI[Next.js composer: preview / validation]
+    UI --> PROXY[Next.js multipart proxy]
+    PROXY --> API[FastAPI /v1/chat/vision/stream]
+    API --> VALIDATE[Up to 3 JPEG/PNG/WebP, <=4MiB each]
+    VALIDATE --> ENCODE[Responses API image data URL encoding]
+    ENCODE --> MUSE[Meta Muse Spark 1.3]
+    MUSE --> SSE[Stream delta / done / error]
+    SSE --> UI
+    SSE --> SESSION[Meta previous_response_id on completed turn]
+    SESSION -->|text-only follow-up| MUSE
+    UI --> HISTORY[Local browser history: filenames only]
+    API -. no intentional persistent image files .-> VALIDATE
