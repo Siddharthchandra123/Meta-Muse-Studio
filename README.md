@@ -168,5 +168,3 @@ Open `/knowledge` in the Next.js dashboard to create local knowledge collections
 ### Knowledge Hub v1.1.1 maintenance fix
 
 The Knowledge Hub now uses an in-page delete confirmation, stabilizes relative SQLite paths to the project directory, and provides `scripts/diagnose-rag-404.ps1` for distinguishing stale collection IDs from old backend or proxy routes. Never remove the existing `data/rag.sqlite3` file to troubleshoot a 404.
-#   M e t a _ A I _ S t u d i o  
- 
